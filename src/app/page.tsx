@@ -2,60 +2,7 @@ import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
-const MOCK_EVENTS = [
-  {
-    id: "1",
-    title: "Next.js Global Summit",
-    overview: "Junte-se a visionários do setor para um mergulho profundo em infraestrutura de nuvem de próxima geração, Server Actions e a evolução do React.",
-    description: "Junte-se a visionários do setor para um mergulho profundo em infraestrutura de nuvem de próxima geração, Server Actions e a evolução do React.",
-    date: "2024-10-24T09:00:00",
-    city: "San Francisco",
-    uf: "CA",
-    remote: false,
-    banner: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&auto=format&fit=crop&q=80",
-    type: "Ao Vivo"
-  },
-  {
-    id: "2",
-    title: "AI Vision Summit",
-    overview: "Definindo as fronteiras dos LLMs.",
-    description: "Definindo as fronteiras dos LLMs.",
-    date: "2024-11-12T09:00:00",
-    city: "",
-    uf: "",
-    remote: true,
-    banner: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800&auto=format&fit=crop&q=80",
-    type: "Summit"
-  },
-  {
-    id: "3",
-    title: "Hackathon Global",
-    overview: "48 horas para desafiar o sistema.",
-    description: "48 horas para desafiar o sistema.",
-    date: "2024-12-05T09:00:00",
-    city: "Berlim",
-    uf: "DE",
-    remote: false,
-    banner: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
-    type: "Hackathon"
-  },
-  {
-    id: "4",
-    title: "Protegendo o Mesh",
-    overview: "Um mergulho profundo intensivo em arquiteturas zero-trust e vulnerabilidades de service mesh. Conduzido por renomados pesquisadores de segurança.",
-    description: "Um mergulho profundo intensivo em arquiteturas zero-trust e vulnerabilidades de service mesh. Conduzido por renomados pesquisadores de segurança.",
-    date: "2024-12-15T09:00:00",
-    city: "",
-    uf: "",
-    remote: true,
-    banner: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80",
-    image: "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80",
-    type: "Workshop"
-  }
-];
+
 
 export default async function Home() {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
@@ -73,18 +20,7 @@ export default async function Home() {
     console.error("Erro ao buscar eventos em destaque:", err);
   }
 
-  // Merge dbEvents with fallbacks if fewer than 4 events exist in database
-  const displayEvents = [...dbEvents];
-  if (displayEvents.length < 4) {
-    const fallbacksNeeded = 4 - displayEvents.length;
-    for (let i = 0; i < fallbacksNeeded; i++) {
-      const mockEvent = MOCK_EVENTS[i % MOCK_EVENTS.length];
-      displayEvents.push({
-        ...mockEvent,
-        id: mockEvent.id
-      });
-    }
-  }
+    const displayEvents = [...dbEvents];
 
   const getEventStatus = (dateStr: any) => {
     if (!dateStr) return { text: "Sem data", color: "bg-white/10 text-on-surface-variant" };
@@ -121,10 +57,10 @@ export default async function Home() {
   };
 
   const [e1, e2, e3, e4] = displayEvents;
-  const status1 = getEventStatus(e1.date);
-  const status2 = getEventStatus(e2.date);
-  const status3 = getEventStatus(e3.date);
-  const status4 = getEventStatus(e4.date);
+  const status1 = e1 ? getEventStatus(e1.date) : null;
+  const status2 = e2 ? getEventStatus(e2.date) : null;
+  const status3 = e3 ? getEventStatus(e3.date) : null;
+  const status4 = e4 ? getEventStatus(e4.date) : null;
 
   return (
     <>
@@ -177,8 +113,12 @@ export default async function Home() {
         </div>
 
         {/* Bento Grid Events */}
+        {displayEvents.length === 0 ? (
+          <div className="w-full text-center py-xl glass-panel rounded-xl glow-border"><p className="text-on-surface-variant font-body-lg">Nenhum evento em destaque no momento.</p></div>
+        ) : (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-lg auto-rows-[300px]">
           {/* Event 1 (Large) */}
+          {e1 && (
           <div className="md:col-span-8 h-full relative">
             <Link href={`/event/${e1.id}`} className="w-full h-full glass-panel rounded-xl overflow-hidden group relative glow-border flex flex-col justify-end p-lg">
               <div className="absolute inset-0 bg-surface-container-lowest/80 group-hover:bg-surface-container-lowest/40 transition-colors z-10"></div>
@@ -189,8 +129,8 @@ export default async function Home() {
               />
               <div className="relative z-20">
                 <div className="flex gap-sm mb-md">
-                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status1.color}`}>
-                    {status1.text}
+                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status1?.color}`}>
+                    {status1?.text}
                   </span>
                   <span className="bg-surface/50 text-on-surface font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT border border-white/10 backdrop-blur-md">
                     {e1.remote ? 'Online' : `${e1.city || ''} - ${e1.uf || ''}`}
@@ -201,8 +141,10 @@ export default async function Home() {
               </div>
             </Link>
           </div>
+          )}
 
           {/* Event 2 (Small) */}
+          {e2 && (
           <div className="md:col-span-4 h-full relative">
             <Link href={`/event/${e2.id}`} className="w-full h-full glass-panel rounded-xl overflow-hidden group relative glow-border flex flex-col justify-end p-lg">
               <div className="absolute inset-0 bg-surface-container-lowest/80 group-hover:bg-surface-container-lowest/40 transition-colors z-10"></div>
@@ -213,8 +155,8 @@ export default async function Home() {
               />
               <div className="relative z-20">
                 <div className="flex gap-sm mb-md">
-                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status2.color}`}>
-                    {status2.text}
+                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status2?.color}`}>
+                    {status2?.text}
                   </span>
                   <span className="bg-surface/50 text-on-surface font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT border border-white/10 backdrop-blur-md">
                     {e2.remote ? 'Online' : `${e2.city || ''} - ${e2.uf || ''}`}
@@ -225,8 +167,10 @@ export default async function Home() {
               </div>
             </Link>
           </div>
+          )}
 
           {/* Event 3 (Small) */}
+          {e3 && (
           <div className="md:col-span-4 h-full relative">
             <Link href={`/event/${e3.id}`} className="w-full h-full glass-panel rounded-xl overflow-hidden group relative glow-border flex flex-col justify-end p-lg">
               <div className="absolute inset-0 bg-surface-container-lowest/80 group-hover:bg-surface-container-lowest/40 transition-colors z-10"></div>
@@ -237,8 +181,8 @@ export default async function Home() {
               />
               <div className="relative z-20">
                 <div className="flex gap-sm mb-md">
-                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status3.color}`}>
-                    {status3.text}
+                  <span className={`font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT uppercase tracking-wider backdrop-blur-md ${status3?.color}`}>
+                    {status3?.text}
                   </span>
                   <span className="bg-surface/50 text-on-surface font-label-sm text-label-sm px-sm py-xs rounded-DEFAULT border border-white/10 backdrop-blur-md">
                     {e3.remote ? 'Online' : `${e3.city || ''} - ${e3.uf || ''}`}
@@ -249,8 +193,10 @@ export default async function Home() {
               </div>
             </Link>
           </div>
+          )}
 
           {/* Event 4 (Large) */}
+          {e4 && (
           <div className="md:col-span-8 h-full relative">
             <div className="w-full h-full glass-panel rounded-xl p-lg relative glow-border flex items-center bg-surface-container-low border border-white/5 overflow-hidden">
               <div className="absolute inset-0 z-0">
@@ -263,7 +209,7 @@ export default async function Home() {
               </div>
               <div className="flex-1 relative z-10 pr-md">
                 <span className="text-primary-fixed-dim font-label-sm text-label-sm mb-xs block">
-                  {status4.text === 'AO VIVO' ? 'Evento em Andamento' : 'Destaque'}
+                  {status4?.text === 'AO VIVO' ? 'Evento em Andamento' : 'Destaque'}
                 </span>
                 <Link href={`/event/${e4.id}`} className="group/title">
                   <h3 className="font-headline-xl text-headline-xl text-on-surface mb-sm group-hover/title:text-primary-fixed-dim transition-colors">{e4.title}</h3>
@@ -290,7 +236,9 @@ export default async function Home() {
               </div>
             </div>
           </div>
+          )}
         </div>
+        )}
       </section>
 
 {/* About Section */}

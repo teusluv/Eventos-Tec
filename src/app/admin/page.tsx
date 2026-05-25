@@ -38,6 +38,13 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+    setToast({message, type});
+    setTimeout(() => setToast(null), 4000);
+  };
 
   // Security gate states
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -68,6 +75,7 @@ export default function AdminPage() {
     if (!confirm("Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita e removerá cupons associados.")) {
       return;
     }
+    setActionLoadingId(`delete-${id}`);
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
       const res = await fetch(`${apiUrl}/api/event/${id}`, {
@@ -75,12 +83,15 @@ export default function AdminPage() {
       });
       if (res.ok) {
         fetchEvents();
+        showToast("Evento excluído com sucesso.", "success");
       } else {
-        alert("Erro ao excluir o evento. Verifique o console ou tente novamente.");
+        showToast("Erro ao excluir o evento. Verifique o console ou tente novamente.", "error");
       }
     } catch (err) {
       console.error("Erro de rede ao excluir evento:", err);
-      alert("Erro de rede ao excluir o evento.");
+      showToast("Erro de rede ao excluir o evento.", "error");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -130,6 +141,7 @@ export default function AdminPage() {
   };
 
   const handleEditClick = async (eventBasic: any) => {
+    setActionLoadingId(`edit-${eventBasic.id}`);
     try {
       setErrorMsg(null);
       setSuccess(false);
@@ -172,11 +184,13 @@ export default function AdminPage() {
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        alert("Erro ao buscar detalhes do evento.");
+        showToast("Erro ao buscar detalhes do evento.", "error");
       }
     } catch (err) {
       console.error("Erro ao buscar detalhes:", err);
-      alert("Erro de conexão ao carregar detalhes.");
+      showToast("Erro de conexão ao carregar detalhes.", "error");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -275,8 +289,14 @@ export default function AdminPage() {
       setIsEditing(false);
       setEditingId(null);
       fetchEvents();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
-      setErrorMsg(err.message || 'Erro inesperado ao salvar evento.');
+      const errorMessage = err.message || 'Erro inesperado ao salvar evento.';
+      if (errorMessage.toLowerCase().includes('failed to fetch') || errorMessage.toLowerCase().includes('network error')) {
+        setErrorMsg("Sua conexão de internet falhou ao salvar. Verifique sua rede e tente novamente. Os dados do formulário foram mantidos.");
+      } else {
+        setErrorMsg(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -662,7 +682,7 @@ export default function AdminPage() {
                 type="button"
                 onClick={() => {
                   if (!newSpeakerName || !newSpeakerRole) {
-                    alert("Por favor, insira pelo menos o Nome e o Cargo do palestrante.");
+                    showToast("Por favor, insira pelo menos o Nome e o Cargo do palestrante.", "error");
                     return;
                   }
                   const defaultAvatar = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60";
@@ -769,7 +789,7 @@ export default function AdminPage() {
                 type="button"
                 onClick={() => {
                   if (!newAgendaTime || !newAgendaTitle) {
-                    alert("Por favor, insira pelo menos o Horário e o Título da programação.");
+                    showToast("Por favor, insira pelo menos o Horário e o Título da programação.", "error");
                     return;
                   }
                   const newAgenda = {
@@ -919,18 +939,46 @@ export default function AdminPage() {
                         <div className="flex items-center justify-end gap-xs">
                           <button
                             onClick={() => handleEditClick(event)}
-                            className="p-sm bg-primary-fixed-dim/10 hover:bg-primary-fixed-dim/25 text-primary-fixed-dim rounded-lg flex items-center justify-center gap-xs transition-colors cursor-pointer border border-primary-fixed-dim/20"
+                            disabled={actionLoadingId !== null}
+                            className={`p-sm rounded-lg flex items-center justify-center gap-xs transition-colors border ${
+                              actionLoadingId === `edit-${event.id}` 
+                                ? 'bg-primary-fixed-dim/20 text-primary-fixed-dim border-primary-fixed-dim/30 cursor-wait'
+                                : actionLoadingId !== null 
+                                  ? 'bg-transparent text-primary-fixed-dim/50 border-primary-fixed-dim/10 opacity-50 cursor-not-allowed'
+                                  : 'bg-primary-fixed-dim/10 hover:bg-primary-fixed-dim/25 text-primary-fixed-dim border-primary-fixed-dim/20 cursor-pointer'
+                            }`}
                             title="Editar Evento"
                           >
-                            <span className="material-symbols-outlined text-[18px]">edit</span>
+                            {actionLoadingId === `edit-${event.id}` ? (
+                              <svg className="animate-spin h-[18px] w-[18px] text-primary-fixed-dim" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <span className="material-symbols-outlined text-[18px]">edit</span>
+                            )}
                             <span className="hidden sm:inline font-bold text-[13px]">Editar</span>
                           </button>
                           <button
                             onClick={() => handleDelete(event.id)}
-                            className="p-sm bg-error/10 hover:bg-error/25 text-error rounded-lg flex items-center justify-center gap-xs transition-colors cursor-pointer border border-error/20"
+                            disabled={actionLoadingId !== null}
+                            className={`p-sm rounded-lg flex items-center justify-center gap-xs transition-colors border ${
+                              actionLoadingId === `delete-${event.id}`
+                                ? 'bg-error/20 text-error border-error/30 cursor-wait'
+                                : actionLoadingId !== null
+                                  ? 'bg-transparent text-error/50 border-error/10 opacity-50 cursor-not-allowed'
+                                  : 'bg-error/10 hover:bg-error/25 text-error border-error/20 cursor-pointer'
+                            }`}
                             title="Excluir Evento"
                           >
-                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                            {actionLoadingId === `delete-${event.id}` ? (
+                              <svg className="animate-spin h-[18px] w-[18px] text-error" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                            ) : (
+                              <span className="material-symbols-outlined text-[18px]">delete</span>
+                            )}
                             <span className="hidden sm:inline font-bold text-[13px]">Excluir</span>
                           </button>
                         </div>
@@ -943,6 +991,18 @@ export default function AdminPage() {
           </div>
         )}
       </section>
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-lg right-lg p-md rounded-lg shadow-xl z-50 flex items-center gap-sm animate-fade-in text-white ${
+          toast.type === 'error' ? 'bg-error text-on-error' : toast.type === 'success' ? 'bg-primary-fixed-dim text-on-primary-fixed' : 'bg-surface-variant'
+        }`}>
+          <span className="material-symbols-outlined text-[20px]">
+            {toast.type === 'error' ? 'error' : toast.type === 'success' ? 'check_circle' : 'info'}
+          </span>
+          <span className="font-label-sm text-label-sm font-bold">{toast.message}</span>
+        </div>
+      )}
     </main>
   );
 }

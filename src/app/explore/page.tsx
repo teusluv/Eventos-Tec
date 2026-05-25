@@ -18,44 +18,7 @@ interface EventItem {
   status: string | null;
 }
 
-const MOCK_EVENTS: EventItem[] = [
-  {
-    id: "1",
-    title: "Next.js Global Summit",
-    description: "O encontro definitivo para desenvolvedores Next.js. Mergulhos profundos em App Router, Server Actions e computação Edge.",
-    date: "24 de Out, 2024",
-    location: "Remoto",
-    type: "online",
-    tags: ["React", "Vercel"],
-    price: 299,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBLoo387JyYOVda0gJ-8v26E2vcX9e4dDtKfXLxhOTNovdxz0CevTLRHlX6R4eNScr2F1_b8GuJpuwTO6XwIxNCoBYuvj3BbWgWVucPQasdCb1yiM45Afv9rgvZzOM-s3S-ZgK3r6JFKD92uGyES_IFiJ6Y1dNyR_KTbcpDrGH5IUrhLJ-REUkByNbm4poBY03y92ELa7zUlz0kj2Dnadg4JwKQV26Rh3G5qIH1L74ErOqYPWPlVgv-TDCQmkaMvQxz2NgEKJVVyYY",
-    status: "AO VIVO",
-  },
-  {
-    id: "2",
-    title: "Zero Trust Architecture Masterclass",
-    description: "Workshop prático construindo perímetros de segurança robustos e baseados identidade para infraestruturas de nuvem modernas.",
-    date: "12 de Nov, 2024",
-    location: "Londres, Reino Unido",
-    type: "in-person",
-    tags: ["SecOps", "IAM"],
-    price: 899,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC-JPSIXHHOTeKCGLVgqWaQNVc0f5VbNHa050XkjG7gsgrTtMNdlzKSG-jX9hwJHNVEWW-oNuG7yb-J9BCSmsd8fFuZ5ra53IdwhC_aZeRIz4LILhkAMTvq7BoRMvpomSL1cdm9nF2z6P66UtHdJ4MHvUdVtfgnuE77U2dlj1NK0tw3WhWcMxSopzpjP2FQqdA3cQx98Nw4zEV6f-Jw2EkB88fPBVC045vWMz5ghPEeFstZ0Fhows33GgtNx8uqyneJvjh6qdV4-jA",
-    status: "Workshop",
-  },
-  {
-    id: "3",
-    title: "KubeCon Cloud Native 2024",
-    description: "A principal conferência da CNCF reúne adotantes e tecnólogos das principais comunidades open source e nuvem nativa.",
-    date: "05 de Dez, 2024",
-    location: "Berlim, Alemanha",
-    type: "in-person",
-    tags: ["K8s", "DevOps"],
-    price: 0,
-    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC8EBVoljhVBZ8WptX5ZXqbDmlAiTgCgzZl5guzevfvfvk3tByIjSiuuuhEAfZvFASgZfNt6gY5wOtP1i8blQuRRfQvVWAwVmKv-kL3eDr4l3W8c8KlJQ74WSy3vTJrY-8NaRkSbR2scpCLQGATjtHr-weviFH0buwcIQyj09riaWPqyPVSijJFAyVBynNqkg_jiPJjLp-JnEsI2QQdzGQHeb9VppoeQleL7V4bS_TNScbb9Rgr5FFuQ_YfMtTd5CQ4J-SQGCDwptY",
-    status: null,
-  }
-];
+
 
 function ExploreContent() {
   const searchParams = useSearchParams();
@@ -138,16 +101,14 @@ function ExploreContent() {
             };
           });
 
-          if (mapped.length > 0) {
-            setEvents(mapped);
-            setLoading(false);
-            return;
-          }
+          setEvents(mapped);
+          setLoading(false);
+          return;
         }
-        throw new Error("Empty list returned");
+        throw new Error("Invalid response format");
       } catch (err) {
-        console.warn("API offline or CORS blocked. Using local mock data.", err);
-        setEvents(MOCK_EVENTS);
+        console.warn("API offline or CORS blocked.", err);
+        setEvents([]);
       } finally {
         setLoading(false);
       }

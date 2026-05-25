@@ -8,10 +8,10 @@ export function Footer() {
         <span className="font-body-md text-body-md text-on-surface-variant">© 2026 EventosTec. Todos os direitos reservados.</span>
       </div>
       <nav className="flex flex-wrap gap-lg justify-center">
-        <Link href="#" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Documentação</Link>
-        <Link href="#" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Política de Privacidade</Link>
-        <Link href="#" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Suporte</Link>
-        <Link href="#" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Fale Conosco</Link>
+        <Link href="/docs" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Documentação</Link>
+        <Link href="/privacy" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Política de Privacidade</Link>
+        <Link href="/support" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Suporte</Link>
+        <Link href="/contact" className="font-label-sm text-label-sm text-on-surface-variant hover:text-white transition-colors">Fale Conosco</Link>
       </nav>
     </footer>
   );
